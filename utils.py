@@ -17,7 +17,7 @@ def encode(text: str, tokenizer:any) -> torch.Tensor:
     """Функция для кодирования входного текста с использованием предварительно обученного токенизатора и векторизованных поисковых запросов"""
     ...
 
-def decode(enc_sec: torch.Tensor,  tokenizer:any) -> str
+def decode(enc_sec: torch.Tensor,  tokenizer:any) -> str:
     """Функция для декодирования входной последовательности в текст"""
     ...
 
