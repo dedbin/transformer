@@ -83,3 +83,53 @@ class TransformerBlock(nn.Module):
         x = x + self.ff(self.norm2(x))
         return x
 
+
+class Transformer(nn.Module):
+    """Transformer."""
+
+    def __init__(self, **kwargs):
+        super().__init__()
+        self.vocab_size = kwargs.get("vocab_size", 100)
+        self.num_embed = kwargs.get("num_embed", 32)
+        self.block_size = kwargs.get("block_size", 8)
+        self.num_heads = kwargs.get("num_heads", 4)
+        self.num_layers = kwargs.get("num_layers", 4)
+        self.dropout = kwargs.get("dropout", 0.2)
+
+        self.token_embedding = nn.Embedding(self.vocab_size, self.num_embed)
+        self.pos_embedding = nn.Embedding(self.block_size, self.num_embed)
+        self.blocks = nn.Sequential(
+            *[TransformerBlock(num_heads=self.num_heads,
+                               block_size=self.block_size,
+                               num_embed=self.num_embed,
+                               dropout=self.dropout,
+                               ) for _ in range(self.num_layers)]
+        )
+        self.ln = nn.LayerNorm(self.num_embed)
+        self.lm_head = nn.Linear(self.num_embed, self.vocab_size)
+
+    def forward(self, idx, targets=None):
+        B, T = idx.shape
+        tok_emb = self.token_embedding(idx)
+        pos_emb = self.pos_embedding(torch.arange(T, device=DEVICE))
+        x = tok_emb + pos_emb
+        x = self.blocks(x)
+        logits = self.lm_head(x)
+        if targets != None:
+            B, T, C = logits.shape
+            logits = torch.reshape(logits, (B * T, C))
+            targets = torch.reshape(targets, (B * T,))
+            loss = F.cross_entropy(logits, targets)
+        else:
+            loss = None
+        return logits, loss
+
+    def generate(self, idx: torch.Tensor, max_new_tokens: int, block_size: int):
+        for _ in range(max_new_tokens):
+            idx_crop = idx[:, -block_size:]
+            logits, loss = self.forward(idx_crop)
+            logits = logits[:, -1, :]
+            probs = F.softmax(logits, dim=-1)
+            idx_next = torch.multinomial(probs, num_samples=1)
+            idx = torch.cat((idx, idx_next), dim=1)
+        return idx
