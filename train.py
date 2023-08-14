@@ -6,7 +6,7 @@ from transformers import AutoTokenizer
 # загрузка модели из файла
 # m = load_model_from_checkpoint(Transformer,vocab_size=vocab_size)
 
-path_do_data = "data/english.txt"
+path_do_data = "data/text_to_train.txt"
 data_raw = open(path_do_data, encoding="utf-8").read()
 tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 vocab_size = tokenizer.vocab_size
