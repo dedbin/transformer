@@ -21,7 +21,7 @@ def encode(text: str, tokenizer: any) -> torch.Tensor:
     return torch.tensor(token_indices, dtype=torch.long)
 
 
-def decode(enc_sec: torch.Tensor, tokenizer: any) -> str:
+def decode(enc_sec: torch.Tensor,  tokenizer:any) -> str:
     """Функция для декодирования входной последовательности в текст"""
     enc_sec = enc_sec.tolist()
     return tokenizer.decode(enc_sec)
